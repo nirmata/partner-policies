@@ -1,0 +1,29 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: ensure-storageclass-replication-3
+spec:
+  background: true
+  validationFailureAction: Enforce  # Change to "Audit" if testing
+  rules:
+    - name: check-storageclass-replication
+      match:
+        any:
+          - resources:
+              kinds:
+                - PersistentVolume
+      context:
+        - name: storageclass
+          apiCall:
+            method: GET
+            urlPath: "/apis/storage.k8s.io/v1/storageclasses/{{ request.object.spec.storageClassName }}"
+            jmesPath: "parameters.replication"
+      validate:
+        message: "The StorageClass referenced by this PV must have replication set to 3."
+        deny:
+          conditions:
+            all:
+              - key: "{{ storageclass }}"
+                operator: NotEquals
+                value: "3"
+

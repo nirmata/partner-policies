@@ -1,0 +1,92 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: enforce-default-storageclass
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: enforce-single-default-storageclass
+      match:
+        resources:
+          kinds:
+            - StorageClass
+      validate:
+        message: "Only one StorageClass can be the default. The default must be 'robin'."
+        deny:
+          conditions:
+            all:
+              - key: "{{ request.operation }}"
+                operator: Equals
+                value: "CREATE"
+              - key: "{{ request.object.metadata.annotations.\"storageclass.kubernetes.io/is-default-class\" || 'false' }}"
+                operator: Equals
+                value: "true"
+              - key: "{{ request.object.metadata.name }}"
+                operator: NotEquals
+                value: "robin"
+
+    - name: restrict-non-robin-default
+      match:
+        resources:
+          kinds:
+            - StorageClass
+      validate:
+        message: "Only 'robin' can be the default StorageClass."
+        deny:
+          conditions:
+            all:
+              - key: "{{ request.object.metadata.annotations.\"storageclass.kubernetes.io/is-default-class\" || 'false' }}"
+                operator: Equals
+                value: "true"
+              - key: "{{ request.object.metadata.name }}"
+                operator: NotEquals
+                value: "robin"
+
+    - name: allow-removal-of-default
+      match:
+        resources:
+          kinds:
+            - StorageClass
+      preconditions:
+        all:
+          - key: "{{ request.operation }}"
+            operator: Equals
+            value: "UPDATE"
+      validate:
+        message: "Only 'robin' can be set as default, but other storage classes can have the default removed."
+        deny:
+          conditions:
+            all:
+              - key: "{{ request.oldObject.metadata.annotations.\"storageclass.kubernetes.io/is-default-class\" || 'false' }}"
+                operator: Equals
+                value: "true"
+              - key: "{{ request.object.metadata.annotations.\"storageclass.kubernetes.io/is-default-class\" || 'false' }}"
+                operator: Equals
+                value: "true"
+              - key: "{{ request.object.metadata.name }}"
+                operator: NotEquals
+                value: "robin"
+
+    - name: restrict-robin-patch
+      match:
+        resources:
+          kinds:
+            - StorageClass
+      preconditions:
+        all:
+          - key: "{{ request.operation }}"
+            operator: Equals
+            value: "UPDATE"
+      validate:
+        message: "Once 'robin' is set as default, it cannot be updated."
+        deny:
+          conditions:
+            all:
+              - key: "{{ request.oldObject.metadata.name }}"
+                operator: Equals
+                value: "robin"
+              - key: "{{ request.oldObject.metadata }}"
+                operator: NotEquals
+                value: "{{ request.object.metadata }}"
+

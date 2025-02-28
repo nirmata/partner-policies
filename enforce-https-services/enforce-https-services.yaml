@@ -1,0 +1,51 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: enforce-https-services
+  annotations:
+    policies.kyverno.io/title: Enforce HTTPS Services
+    policies.kyverno.io/category: Security
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/subject: Service
+    policies.kyverno.io/minversion: 1.9.0
+    kyverno.io/kubernetes-version: "1.24"
+    policies.kyverno.io/description: >-
+      This policy ensures that all Kubernetes Services use only HTTPS or TCP.
+      It blocks any Service using HTTP-based ports such as 80, 8080, etc.
+spec:
+  validationFailureAction: Enforce
+  background: false
+  rules:
+    - name: deny-http-services
+      match:
+        any:
+          - resources:
+              kinds:
+                - Service
+      validate:
+        message: "Only HTTPS or TCP-based services are allowed. HTTP-based services are not permitted."
+        deny:
+          conditions:
+            any:
+              - key: "{{ request.object.spec.ports[].port || `[]` }}"
+                operator: AnyIn
+                value:
+                  - 80
+                  - 8080
+                  - 8000
+                  - 8888
+                  - 3000
+              - key: "{{ request.object.spec.ports[].targetPort || `[]` }}"
+                operator: AnyIn
+                value:
+                  - 80
+                  - 8080
+                  - 8000
+                  - 8888
+                  - 3000
+              - key: "{{ request.object.spec.ports[].protocol || `[]` }}"
+                operator: AnyNotIn
+                value:
+                  - TCP
+                  - HTTPS
+

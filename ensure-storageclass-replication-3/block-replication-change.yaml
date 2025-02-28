@@ -1,0 +1,37 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: block-replication-change
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: prevent-replication-reduction
+      match:
+        any:
+          - resources:
+              kinds:
+                - StorageClass
+      preconditions:
+        all:
+          - key: "{{ request.operation }}"
+            operator: Equals
+            value: "UPDATE"
+      context:
+        - name: oldReplication
+          apiCall:
+            method: GET
+            urlPath: "/apis/storage.k8s.io/v1/storageclasses/{{ request.object.metadata.name }}"
+            jmesPath: "parameters.replication"
+      validate:
+        message: "StorageClass replication factor cannot be reduced from 3."
+        deny:
+          conditions:
+            all:
+              - key: "{{ oldReplication }}"
+                operator: Equals
+                value: "3"
+              - key: "{{ request.object.parameters.replication }}"
+                operator: NotEquals
+                value: "3"
+

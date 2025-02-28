@@ -1,0 +1,20 @@
+allowVolumeExpansion: true
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"allowVolumeExpansion":true,"apiVersion":"storage.k8s.io/v1","kind":"StorageClass","metadata":{"annotations":{"storageclass.kubernetes.io/is-default-class":"true"},"name":"robin"},"mountOptions":["discard"],"parameters":{"guaranteedReadWriteLatency":"true"},"provisioner":"csi-driver.example-vendor.example","reclaimPolicy":"Retain","volumeBindingMode":"WaitForFirstConsumer"}
+    storageclass.kubernetes.io/is-default-class: "true"
+  creationTimestamp: "2025-02-21T11:01:20Z"
+  name: robin
+  resourceVersion: "596516"
+  uid: 4b6c5e90-aeb8-4de0-9194-84382c259101
+mountOptions:
+- discard
+parameters:
+  guaranteedReadWriteLatency: "true"
+  replication: "2"
+provisioner: csi-driver.example-vendor.example
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer

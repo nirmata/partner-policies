@@ -1,0 +1,11 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: robin
+provisioner: robin
+reclaimPolicy: Delete
+parameters:
+  replication: "1"
+  faultdomain: "none"  # ❌ This should be disk, host, or rack
+  snapshot_space_limit: "0"  # ❌ No snapshot space allocated
+

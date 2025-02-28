@@ -1,0 +1,59 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: enforce-faultdomain-and-backup-for-replication-1
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: validate-faultdomain-for-replication-1
+      match:
+        any:
+          - resources:
+              kinds:
+                - PersistentVolume
+      context:
+        - name: storageClass
+          apiCall:
+            method: GET
+            urlPath: "/apis/storage.k8s.io/v1/storageclasses/{{ request.object.spec.storageClassName }}"
+            jmesPath: "parameters"
+      validate:
+        message: "When replication is 1, 'faultdomain' must be set to 'disk', 'host', or 'rack'."
+        deny:
+          conditions:
+            all:
+              - key: "{{ storageClass.replication }}"
+                operator: Equals
+                value: "1"
+              - key: "{{ storageClass.faultdomain }}"
+                operator: AnyNotIn
+                value:
+                  - disk
+                  - host
+                  - rack
+
+    - name: ensure-backup-or-snapshot-for-replication-1
+      match:
+        any:
+          - resources:
+              kinds:
+                - PersistentVolume
+      context:
+        - name: storageClass
+          apiCall:
+            method: GET
+            urlPath: "/apis/storage.k8s.io/v1/storageclasses/{{ request.object.spec.storageClassName }}"
+            jmesPath: "parameters"
+      validate:
+        message: "When replication is 1, snapshot_space_limit or a backup must be configured."
+        deny:
+          conditions:
+            all:
+              - key: "{{ storageClass.replication }}"
+                operator: Equals
+                value: "1"
+              - key: "{{ storageClass.snapshot_space_limit }}"
+                operator: LessThan
+                value: "1"
+

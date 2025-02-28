@@ -1,0 +1,113 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: restrict-robin-reserved-ports
+  annotations:
+    policies.kyverno.io/title: Restrict Robin Reserved Ports
+    policies.kyverno.io/category: Security
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/subject: Service, Pod
+    policies.kyverno.io/minversion: 1.9.0
+    kyverno.io/kubernetes-version: "1.24"
+    policies.kyverno.io/description: >-
+      This policy ensures that only Pods and Services with the exact Robin labels 
+      can use the reserved ports 29442 - 29470. Any other Pods or Services trying 
+      to use these ports will be denied.
+spec:
+  validationFailureAction: Enforce
+  background: false
+  rules:
+    - name: deny-reserved-ports-for-unlabeled-services
+      match:
+        any:
+          - resources:
+              kinds:
+                - Service
+      validate:
+        message: "Only Services with exact Robin labels can use reserved Robin ports (29442 - 29470)."
+        deny:
+          conditions:
+            all:
+              - key: "{{ request.object.spec.ports[].port || `[]` }}"
+                operator: AnyIn
+                value: 
+                  - 29442
+                  - 29443
+                  - 29444
+                  - 29445
+                  - 29446
+                  - 29447
+                  - 29448
+                  - 29449
+                  - 29450
+                  - 29451
+                  - 29452
+                  - 29453
+                  - 29454
+                  - 29455
+                  - 29456
+                  - 29457
+                  - 29458
+                  - 29459
+                  - 29460
+                  - 29461
+                  - 29462
+                  - 29463
+                  - 29464
+                  - 29465
+                  - 29466
+                  - 29467
+                  - 29468
+                  - 29469
+                  - 29470
+              - key: "{{ request.object.metadata.labels.\"app.kubernetes.io/name\" }}"
+                operator: NotEquals
+                value: "robin"
+
+    - name: deny-reserved-ports-for-unlabeled-pods
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+      validate:
+        message: "Only Pods with exact Robin labels can use reserved Robin ports (29442 - 29470)."
+        deny:
+          conditions:
+            all:
+              - key: "{{ request.object.spec.containers[].ports[].containerPort || `[]` }}"
+                operator: AnyIn
+                value: 
+                  - 29442
+                  - 29443
+                  - 29444
+                  - 29445
+                  - 29446
+                  - 29447
+                  - 29448
+                  - 29449
+                  - 29450
+                  - 29451
+                  - 29452
+                  - 29453
+                  - 29454
+                  - 29455
+                  - 29456
+                  - 29457
+                  - 29458
+                  - 29459
+                  - 29460
+                  - 29461
+                  - 29462
+                  - 29463
+                  - 29464
+                  - 29465
+                  - 29466
+                  - 29467
+                  - 29468
+                  - 29469
+                  - 29470
+              - key: "{{ request.object.metadata.labels.\"app.kubernetes.io/name\" }}"
+                operator: NotEquals
+                value: "robin"
+
