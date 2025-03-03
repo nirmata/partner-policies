@@ -1,0 +1,27 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+    annotations:
+        policies.kyverno.io/category: Storage
+        policies.kyverno.io/description: This policy ensures that StorageClass objects named 'robin' have the compression algorithm set to 'LZ4', except in the default namespace.
+        policies.kyverno.io/severity: medium
+        policies.kyverno.io/subject: StorageClass
+        policies.kyverno.io/title: Enforce StorageClass Compression
+    name: enforce-storageclass-compression
+spec:
+    background: true
+    rules:
+        - match:
+          any:
+          - resources:
+              kinds:
+              - StorageClass
+              names:
+              - robin*
+          name: check-compression-algorithm
+          validate:
+          message: StorageClass 'robin' must have compression algorithm set to 'LZ4'
+          pattern:
+              parameters:
+                  compression: LZ4
+    validationFailureAction: Enforce
