@@ -1,0 +1,10 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: good-storageclass
+provisioner: your-provisioner-here
+parameters:
+  type: gp2
+  compression: ZSTD
+reclaimPolicy: Delete
+volumeBindingMode: WaitForFirstConsumer
