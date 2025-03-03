@@ -1,0 +1,21 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+    name: destinationrule-tls-mode
+spec:
+  background: false
+  rules:
+    - match:
+        any:
+          - resources:
+              kinds:
+                - DestinationRule
+      name: validate-tls-mode
+      validate:
+        message: spec.trafficPolicy.tls.mode if present must be set to ISTIO_MUTUAL
+        pattern:
+          spec:
+            (trafficPolicy):
+              (tls):
+                  mode: ISTIO_MUTUAL
+  validationFailureAction: Enforce

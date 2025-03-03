@@ -1,0 +1,28 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+    annotations:
+        policies.kyverno.io/category: Security
+        policies.kyverno.io/description: |
+            This policy ensures that mesh-wide strict mTLS is enabled by requiring
+            the spec.mtls.mode field to be set to STRICT in PeerAuthentication resources.
+        policies.kyverno.io/severity: medium
+        policies.kyverno.io/subject: PeerAuthentication
+        policies.kyverno.io/title: Require Strict mTLS Mode
+    name: peer-auth-strict-mtls-required
+spec:
+  background: true
+  rules:
+      - match:
+          any:
+            - resources:
+                kinds:
+                  - PeerAuthentication
+        name: check-strict-mtls-mode
+        validate:
+          message: spec.mtls.mode must be set to STRICT in PeerAuthentication resources
+          pattern:
+            spec:
+              mtls:
+                mode: STRICT
+  validationFailureAction: Enforce

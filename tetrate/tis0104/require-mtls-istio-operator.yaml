@@ -1,0 +1,27 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+    annotations:
+        policies.kyverno.io/category: Security
+        policies.kyverno.io/description: |
+            This policy ensures that automatic mutual TLS (mTLS) is enabled in the Istio service mesh by requiring the spec.meshConfig.enableAutoMtls field to be set to true in IstioOperator resources.
+        policies.kyverno.io/severity: medium
+        policies.kyverno.io/subject: IstioOperator
+        policies.kyverno.io/title: Require Auto mTLS
+    name: istio-auto-mtls-required
+spec:
+    background: true
+    rules:
+      - match:
+          any:
+            - resources:
+                kinds:
+                  - IstioOperator
+        name: check-auto-mtls-enabled
+        validate:
+          message: spec.meshConfig.enableAutoMtls must be set to true in IstioOperator resources
+          pattern:
+            spec:
+              meshConfig:
+                enableAutoMtls: true
+    validationFailureAction: Enforce
