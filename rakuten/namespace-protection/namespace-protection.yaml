@@ -13,8 +13,8 @@ metadata:
     policies.kyverno.io/description: >-
       Cases where RBAC may be applied at a higher level and where Namespace-level
       protections may be necessary can be accomplished with a separate policy. For example,
-      one may want to protect creates, updates, and deletes on only a single Namespace. This
-      policy will block creates, updates, and deletes to any Namespace labeled with `freeze=true`.
+      one may want to protect updates and deletes on only a single Namespace. This
+      policy will block updates and deletes to any Namespace labeled with `freeze=true`.
       Caution should be exercised when using rules which match on all kinds (`"*"`) as this will
       involve, for larger clusters, a substantial amount of processing on Kyverno's part. Additional
       resource requests and/or limits may be required.
@@ -28,6 +28,9 @@ spec:
         - resources:
             kinds:
             - "*"
+            operations:
+              - DELETE
+              - UPDATE
             namespaceSelector:
               matchExpressions:
                 - key: freeze
@@ -43,6 +46,8 @@ spec:
         - resources:
             kinds:
             - Namespace
+            operations:
+              - DELETE
             selector:
               matchLabels:
                 freeze: "true"
