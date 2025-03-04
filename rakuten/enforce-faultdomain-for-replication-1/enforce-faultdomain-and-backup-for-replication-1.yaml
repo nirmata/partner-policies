@@ -2,8 +2,20 @@ apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
   name: enforce-faultdomain-and-backup-for-replication-1
+  annotations:
+    policies.kyverno.io/title: Enforce Fault Domain and Backup for Replication 1
+    policies.kyverno.io/category: Storage
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/subject: PersistentVolume
+    policies.kyverno.io/minversion: 1.9.0
+    kyverno.io/kubernetes-version: "1.24"
+    policies.kyverno.io/description: >-
+      This policy ensures that when replication is set to 1 for PersistentVolumes,
+      the storage configuration includes a fault domain and backup mechanisms.
+      It enforces that 'faultdomain' is set to either 'disk', 'host', or 'rack'
+      and requires a snapshot space limit or backup to be configured to prevent data loss.
 spec:
-  validationFailureAction: Enforce
+  validationFailureAction: Audit
   background: true
   rules:
     - name: validate-faultdomain-for-replication-1

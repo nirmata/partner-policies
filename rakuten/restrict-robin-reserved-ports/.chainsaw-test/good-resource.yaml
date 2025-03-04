@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: invalid-robin-service
+  name: valid-robin-service
   labels:
-    app.kubernetes.io/name: robin123
+    app.kubernetes.io/name: robin
 spec:
   selector:
     app: robin
@@ -14,9 +14,9 @@ spec:
 apiVersion: v1
 kind: Pod
 metadata:
-  name: invalid-robin-pod
+  name: valid-robin-pod
   labels:
-    app.kubernetes.io/name: robin1
+    app.kubernetes.io/name: robin
 spec:
   containers:
     - name: robin-container

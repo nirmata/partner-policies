@@ -1,0 +1,30 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/kyverno/chainsaw/main/.schemas/json/test-chainsaw-v1alpha1.json
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: enforce-faultdomain-and-backup-for-replication-1
+spec:
+  steps:
+  - name: step-01
+    try:
+    - apply:
+        file: ../enforce-faultdomain-and-backup-for-replication-1.yaml
+    - patch:
+        resource:
+          apiVersion: kyverno.io/v1
+          kind: ClusterPolicy
+          metadata:
+            name: enforce-faultdomain-and-backup-for-replication-1
+          spec:
+            validationFailureAction: Enforce
+    - assert:
+        file: chainsaw-step-01-assert-1.yaml
+  - name: step-02
+    try:
+    - apply:
+        file: storageclass-good.yaml
+    - apply:
+        expect:
+        - check:
+            ($error != null): true
+        file: storageclass-bad.yaml

@@ -19,7 +19,7 @@ metadata:
       involve, for larger clusters, a substantial amount of processing on Kyverno's part. Additional
       resource requests and/or limits may be required.
 spec:
-  validationFailureAction: Enforce
+  validationFailureAction: Audit
   background: false
   rules:
     - name: check-freeze

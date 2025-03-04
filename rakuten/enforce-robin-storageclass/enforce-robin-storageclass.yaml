@@ -1,9 +1,22 @@
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
+  annotations:
+    policies.kyverno.io/title: Enforce Default StorageClass
+    policies.kyverno.io/category: Storage
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/subject: StorageClass
+    policies.kyverno.io/minversion: 1.9.0
+    kyverno.io/kubernetes-version: "1.24"
+    policies.kyverno.io/description: >-
+      This policy enforces that only a single default StorageClass is allowed in the cluster, 
+      and it must be named 'robin'. It prevents multiple default StorageClasses from being 
+      set and ensures that non-'robin' StorageClasses cannot be assigned as default. 
+      Additionally, it allows the removal of the default flag from other StorageClasses 
+      but restricts modifications to 'robin' once it is set as default.
   name: enforce-default-storageclass
 spec:
-  validationFailureAction: Enforce
+  validationFailureAction: Audit
   background: true
   rules:
     - name: enforce-single-default-storageclass

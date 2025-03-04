@@ -1,0 +1,15 @@
+allowVolumeExpansion: true
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+  name: robin
+mountOptions:
+- discard
+parameters:
+  guaranteedReadWriteLatency: "true"
+  replication: "3"
+provisioner: csi-driver.example-vendor.example
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer

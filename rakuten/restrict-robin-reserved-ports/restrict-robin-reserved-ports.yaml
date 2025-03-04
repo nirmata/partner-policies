@@ -14,7 +14,7 @@ metadata:
       can use the reserved ports 29442 - 29470. Any other Pods or Services trying 
       to use these ports will be denied.
 spec:
-  validationFailureAction: Enforce
+  validationFailureAction: Audit
   background: false
   rules:
     - name: deny-reserved-ports-for-unlabeled-services
