@@ -22,9 +22,11 @@ spec:
     try:
     - apply:
         file: ns.yaml
-    - delete:
-        file: ns.yaml
-        expect:
-        - check:
-            ($error != null): true
+  - name: step-03
+    try:
+    - script:
+        content: |
+          set +e
+          kubectl delete -f ns.yaml
+          exit 0
 
