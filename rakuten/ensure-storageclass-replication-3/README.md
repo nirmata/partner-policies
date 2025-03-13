@@ -9,5 +9,5 @@ The `block-replication-change` policy is a Kyverno ClusterPolicy designed to enf
 ## Usage
 To apply this policy, ensure that you have Kyverno installed in your Kubernetes cluster. You can apply the policy using the following command:
 ```bash
-kubectl apply -f enforce-https-services.yaml
+kubectl apply -f block-replication-change.yaml
 ```

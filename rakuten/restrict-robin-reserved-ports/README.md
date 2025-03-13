@@ -13,7 +13,7 @@ The primary goal of this policy is to prevent unauthorized access to reserved po
 
 To apply this policy, ensure that you have Kyverno installed in your Kubernetes cluster. You can apply the policy using the following command:
 ```bash
-kubectl apply -f path/to/restrict-robin-reserved-ports.yaml
+kubectl apply -f restrict-robin-reserved-ports.yaml
 ```
 
 ## Conclusion

@@ -11,7 +11,7 @@ The Namespace Protection policy is designed to prevent modifications to Kubernet
 ## Usage
 You can apply the policy using the following command:
 ```bash
-kubectl apply -f enforce-https-services.yaml
+kubectl apply -f namespace-protection.yaml
 ```
 
 For example, to freeze a namespace, you can use the following command:

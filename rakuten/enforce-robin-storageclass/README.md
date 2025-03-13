@@ -13,5 +13,5 @@ The `enforce-default-storageclass` policy is designed to ensure that only one St
 ## Usage
 To apply this policy, ensure you have Kyverno installed in your Kubernetes cluster and apply the YAML file using the following command:
 ```bash
-kubectl apply -f enforce-https-services.yaml
+kubectl apply -f enforce-robin-storageclass.yaml
 ```
