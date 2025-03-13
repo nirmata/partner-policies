@@ -4,11 +4,9 @@ metadata:
   name: restrict-robin-reserved-ports
   annotations:
     policies.kyverno.io/title: Restrict Robin Reserved Ports
-    policies.kyverno.io/category: Security
+    policies.kyverno.io/category: Robin CNS
     policies.kyverno.io/severity: high
     policies.kyverno.io/subject: Service, Pod
-    policies.kyverno.io/minversion: 1.9.0
-    kyverno.io/kubernetes-version: "1.24"
     policies.kyverno.io/description: >-
       This policy ensures that only Pods and Services with the exact Robin labels 
       can use the reserved ports 29442 - 29470. Any other Pods or Services trying 
