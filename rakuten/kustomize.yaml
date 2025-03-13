@@ -1,0 +1,8 @@
+resources:
+  - enforce-compression-algorithm/enforce-compression-algorithm.yaml
+  - enforce-faultdomain-for-replication-1/enforce-faultdomain-for-replication-1.yaml
+  - enforce-https-services/enforce-https-services.yaml
+  - enforce-robin-storageclass/enforce-robin-storageclass.yaml
+  - ensure-storageclass-replication-3/ensure-storageclass-replication-3.yaml
+  - namespace-protection/namespace-protection.yaml
+  - restrict-robin-reserved-ports/restrict-robin-reserved-ports.yaml
