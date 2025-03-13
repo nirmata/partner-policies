@@ -100,4 +100,3 @@ spec:
               - key: "{{ request.oldObject.metadata }}"
                 operator: NotEquals
                 value: "{{ request.object.metadata }}"
-
