@@ -4,11 +4,9 @@ metadata:
   name: block-replication-change
   annotations:
     policies.kyverno.io/title: Block Replication Change
-    policies.kyverno.io/category: Storage
+    policies.kyverno.io/category: Robin CNS
     policies.kyverno.io/severity: high
     policies.kyverno.io/subject: StorageClass
-    policies.kyverno.io/minversion: 1.9.0
-    kyverno.io/kubernetes-version: "1.24"
     policies.kyverno.io/description: >-
       This policy prevents the reduction of the replication factor in StorageClasses.
       It ensures that the replication factor remains at 3 by blocking any updates
