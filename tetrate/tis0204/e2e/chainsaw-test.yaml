@@ -1,0 +1,35 @@
+apiVersion: chainsaw.kyverno.io/v1alpha1
+kind: Test
+metadata:
+  name: test-check-mtls-overrides
+spec:
+  steps:
+    - name: apply-subset-policy
+      try:
+        - apply:
+            file: ../check-mtls-overrides.yaml
+        - assert:
+            file: policy-assert.yaml
+
+    - name: apply-gateway-rbac
+      try: 
+        - apply:
+            file: rbac.yaml
+
+    - name: apply-gateway-resource
+      try: 
+        - apply:
+            file: destinationrule.yaml
+
+    - name: apply-good-resource
+      try:
+        - apply:
+            file: good-resource.yaml
+
+    - name: apply-bad-resource (should fail)
+      try:
+        - apply:
+            expect:
+              - check:
+                  ($error != null): true
+            file: bad-resource.yaml
