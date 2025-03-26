@@ -1,0 +1,9 @@
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: local-disable-mtls-rule
+spec:
+  host: "app-service.test.svc.cluster.local"
+  trafficPolicy:
+    tls:
+      mode: DISABLE

@@ -1,0 +1,43 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: check-mtls-overrides
+  annotations:
+    policies.kyverno.io/title: Validate mTLS Settings for DestinationRules
+    policies.kyverno.io/category: Istio Best Practices
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: DestinationRule
+    policies.kyverno.io/description: >-
+      Ensures consistent mTLS configurations by verifying that local DestinationRules
+      do not conflict with global mTLS settings. This helps prevent misconfigurations
+      where mTLS settings are unintentionally overridden, leading to inconsistent behavior.
+spec:
+  validationFailureAction: Enforce
+  rules:
+    - name: check-mtls-overrides
+      match:
+        any:
+          - resources:
+              kinds:
+                - DestinationRule
+      context:
+        - name: manifestMtls
+          variable:
+            jmesPath: "request.object.spec.trafficPolicy.tls.mode || '' "
+        - name: existingDestinationRule
+          apiCall:
+            urlPath: "/apis/networking.istio.io/v1/destinationrules"
+            jmesPath: "items[?spec.host == '*.svc.cluster.local'].spec.trafficPolicy.tls.mode || [] "
+      preconditions:
+        all:
+          - key: '{{ manifestMtls }}'
+            operator: NotEquals
+            value: ""
+      validate:
+        message: "The mTLS mode '{{ manifestMtls }}' in this DestinationRule conflicts with the existing global mTLS settings: '{{ existingDestinationRule }}'."
+        deny:
+          conditions:
+            any:
+              - key: "{{ manifestMtls }}"
+                operator: AnyNotIn
+                value: "{{ existingDestinationRule }}"
