@@ -4,7 +4,7 @@ metadata:
   name: block-replication-change
   annotations:
     policies.kyverno.io/title: Block Replication Change
-    policies.kyverno.io/category: Robin CNS
+    policies.kyverno.io/category: Rakuten CNS
     policies.kyverno.io/severity: high
     policies.kyverno.io/subject: StorageClass
     policies.kyverno.io/description: >-

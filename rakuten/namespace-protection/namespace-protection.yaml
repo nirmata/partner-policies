@@ -4,7 +4,7 @@ metadata:
   name: namespace-protection
   annotations:
     policies.kyverno.io/title: Namespace Protection
-    policies.kyverno.io/category: Robin CNS
+    policies.kyverno.io/category: Rakuten CNS
     policies.kyverno.io/severity: medium
     policies.kyverno.io/subject: Namespace
     policies.kyverno.io/description: >-

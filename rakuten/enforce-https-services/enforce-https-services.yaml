@@ -4,7 +4,7 @@ metadata:
   name: enforce-https-services
   annotations:
     policies.kyverno.io/title: Enforce HTTPS Services
-    policies.kyverno.io/category: Robin CNS
+    policies.kyverno.io/category: Rakuten CNS
     policies.kyverno.io/severity: high
     policies.kyverno.io/subject: Service
     policies.kyverno.io/description: >-

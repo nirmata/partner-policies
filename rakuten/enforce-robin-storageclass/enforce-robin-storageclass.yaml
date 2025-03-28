@@ -3,7 +3,7 @@ kind: ClusterPolicy
 metadata:
   annotations:
     policies.kyverno.io/title: Enforce Default StorageClass
-    policies.kyverno.io/category: Robin CNS
+    policies.kyverno.io/category: Rakuten CNS
     policies.kyverno.io/severity: high
     policies.kyverno.io/subject: StorageClass
     policies.kyverno.io/description: >-

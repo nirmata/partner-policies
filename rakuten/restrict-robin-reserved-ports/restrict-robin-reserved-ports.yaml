@@ -4,7 +4,7 @@ metadata:
   name: restrict-robin-reserved-ports
   annotations:
     policies.kyverno.io/title: Restrict Robin Reserved Ports
-    policies.kyverno.io/category: Robin CNS
+    policies.kyverno.io/category: Rakuten CNS
     policies.kyverno.io/severity: high
     policies.kyverno.io/subject: Service, Pod
     policies.kyverno.io/description: >-

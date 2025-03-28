@@ -4,7 +4,7 @@ metadata:
   name: enforce-faultdomain-and-backup-for-replication-1
   annotations:
     policies.kyverno.io/title: Enforce Fault Domain and Backup for Replication 1
-    policies.kyverno.io/category: Robin CNS
+    policies.kyverno.io/category: Rakuten CNS
     policies.kyverno.io/severity: high
     policies.kyverno.io/subject: PersistentVolume
     policies.kyverno.io/description: >-
