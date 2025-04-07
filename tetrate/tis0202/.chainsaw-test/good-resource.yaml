@@ -1,0 +1,6 @@
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: good-resource-1
+spec:
+  host: existent-service.test-namespace.svc.cluster.local

@@ -1,0 +1,43 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: verify-destinationrule-hosts
+  annotations:
+    policies.kyverno.io/title: Validate Hosts in DestinationRules
+    policies.kyverno.io/category: Istio Best Practices
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: DestinationRule
+    policies.kyverno.io/description: >-
+      Ensures that the host specified in a DestinationRule points to an existing VirtualService.
+      This prevents misconfigurations where DestinationRules reference non-existent services,
+      which can lead to routing failures (e.g., TIS0202 error in Istio analyzers).
+spec:
+  validationFailureAction: Enforce
+  rules:
+    - name: check-host-exists-in-virtualservice
+      match:
+        any:
+          - resources:
+              kinds:
+                - DestinationRule
+      context:
+        - name: manifestService
+          variable:
+            jmesPath: "request.object.spec.host || '' | split(@, '.')[0]"
+        - name: manifestNamespace
+          variable:
+            jmesPath: "request.object.spec.host || '' | split(@, '.')[1] || request.object.metadata.namespace || 'default'"
+        - name: existingServices
+          apiCall:
+            urlPath: "/apis/networking.istio.io/v1/namespaces/{{ manifestNamespace }}/virtualservices"
+            jmesPath: "items[].metadata.name || []"
+      validate:
+        message: >-
+          The DestinationRule refers to service '{{ manifestService }}' which does not exist as a VirtualService
+          in the namespace '{{ manifestNamespace }}'. Existing services: {{ existingServices }}.
+        deny:
+          conditions:
+            any:
+              - key: "{{ manifestService }}"
+                operator: AnyNotIn
+                value: "{{ existingServices }}"
