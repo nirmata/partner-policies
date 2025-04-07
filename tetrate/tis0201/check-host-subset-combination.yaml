@@ -1,0 +1,46 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: prevent-overlapping-destinationrules
+  annotations:
+    policies.kyverno.io/title: Prevent Overlapping DestinationRules
+    policies.kyverno.io/category: Istio Best Practices
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: DestinationRule
+    policies.kyverno.io/description: >-
+      Detects and prevents the creation of multiple DestinationRule objects with the same host and subset combination.
+      Overlapping configurations can lead to unpredictable routing behavior in Istio as the control plane may not reliably choose between conflicting rules.
+      This policy enforces uniqueness of the (host, subset) pairing across DestinationRules to avoid errors like TIS0201 reported by Istio analyzers.
+      Use a single DestinationRule per host-subset pair, or split subsets distinctly across different rules to ensure safe and consistent traffic policies.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: check-duplicate-host-subset-combo
+      match:
+        any:
+          - resources:
+              kinds:
+                - DestinationRule
+      context:
+        - name: manifestHostname
+          variable:
+            jmesPath: "request.object.spec.host || '' | split(@, '.')[0]"
+        - name: manifestSubsets
+          variable:
+            jmesPath: "request.object.spec.subsets[].name || '' "
+        - name: conflictingSubsets
+          apiCall:
+            urlPath: "/apis/networking.istio.io/v1/destinationrules"
+            jmesPath: >
+              items[?starts_with(spec.host, '{{ manifestHostname }}.')].spec.subsets[].name || []
+
+      validate:
+        message: "Conflicting subset name(s) '{{ manifestSubsets }}' for the same host '{{ manifestHostname }}' already defined."
+        deny:
+          conditions:
+            any:
+              - key: "{{ manifestSubsets }}"
+                operator: AnyIn
+                value: "{{ conflictingSubsets }}"
+
