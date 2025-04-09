@@ -1,0 +1,33 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: check-istio-configmap-tracing
+  annotations:
+    policies.kyverno.io/title: Block Mesh Tracing Configuration
+    policies.kyverno.io/category: Best Practices
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: ConfigMap
+    policies.kyverno.io/description: >-
+      This policy prevents the use of tracing configuration within the Istio ConfigMap mesh configuration.
+      The mesh.tracing configuration in Istio's ConfigMap is an older pattern that may be deprecated in future releases.
+      The Telemetry API is the recommended approach for configuring tracing in Istio.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: check-mesh-tracing-not-specified
+      match:
+        resources:
+          kinds:
+            - ConfigMap
+          namespaces:
+            - "istio-system"
+          names:
+            - "istio"
+      validate:
+        message: "Using mesh.tracing in Istio ConfigMap is not recommended. Please use the Telemetry API instead."
+        deny:
+          conditions:
+            - key: "{{ regex_match('tracing:', request.object.data.mesh) }}"
+              operator: Equals
+              value: true
