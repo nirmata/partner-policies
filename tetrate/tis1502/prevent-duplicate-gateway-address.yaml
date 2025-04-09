@@ -1,0 +1,55 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: prevent-duplicate-gateway-address
+  annotations:
+    policies.kyverno.io/title: Prevent Duplicate Gateway Address
+    policies.kyverno.io/category: Gateway API Best Practices
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: Gateway
+    policies.kyverno.io/description: >-
+      Prevents creation of Gateway resources with the same address and type combination
+      as existing Gateways. Multiple Gateways with the same address and type can lead to
+      conflicts and undefined behavior.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: check-duplicate-address
+      match:
+        any:
+          - resources:
+              kinds:
+                - Gateway
+      context:
+        - name: newGatewayName
+          variable:
+            value: "{{ request.object.metadata.name }}"
+        - name: newGatewayNamespace
+          variable:
+            value: "{{ request.object.metadata.namespace }}"
+        - name: newGatewayAddresses
+          variable:
+            jmesPath: "request.object.spec.addresses || `[]`"
+        - name: existingGateways
+          apiCall:
+            urlPath: "/apis/gateway.networking.k8s.io/v1beta1/gateways"
+            jmesPath: "items"
+      preconditions:
+        all:
+          - key: "{{ newGatewayAddresses | length(@) }}"
+            operator: GreaterThan
+            value: 0
+      validate:
+        message: "Gateway cannot be created with duplicate address and type combination. Address conflict detected with existing Gateway."
+        foreach:
+          - list: "newGatewayAddresses"
+            deny:
+              conditions:
+                all:
+                  - key: "{{ element.type }}"
+                    operator: Equals
+                    value: "IPAddress"
+                  - key: "{{ existingGateways[?metadata.name != '{{ newGatewayName }}' || metadata.namespace != '{{ newGatewayNamespace }}'] | [].spec.addresses[?type=='{{ element.type }}' && value=='{{ element.value }}'] | length(@) }}"
+                    operator: GreaterThan
+                    value: 0

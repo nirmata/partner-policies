@@ -1,0 +1,44 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: validate-workloadentry-serviceentry-address-mapping
+  annotations:
+    policies.kyverno.io/title: Validate WorkloadEntry ServiceEntry Address Mapping
+    policies.kyverno.io/category: Istio Service Mesh Best Practices
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: WorkloadEntry, ServiceEntry
+    policies.kyverno.io/description: >-
+      Ensures that each WorkloadEntry address is included in a corresponding ServiceEntry's addresses field.
+      This prevents misconfiguration where workloads cannot be properly recognized or routed to within the service mesh.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: check-workloadentry-address-in-serviceentry
+      match:
+        any:
+          - resources:
+              kinds:
+                - networking.istio.io/v1beta1/WorkloadEntry
+      context:
+        - name: workloadEntryAddress
+          variable:
+            value: "{{ request.object.spec.address }}"
+        - name: namespace
+          variable:
+            value: "{{ request.object.metadata.namespace }}"
+        - name: serviceEntries
+          apiCall:
+            urlPath: "/apis/networking.istio.io/v1beta1/namespaces/{{ namespace }}/serviceentries"
+            jmesPath: "items"
+        - name: serviceEntryAddresses
+          variable:
+            jmesPath: "serviceEntries[*].spec.addresses[]"
+      validate:
+        message: "WorkloadEntry address '{{ workloadEntryAddress }}' is not included in any ServiceEntry's addresses field in the same namespace. Please create or update a ServiceEntry to include this address. Debug info: Found ServiceEntries: {{ serviceEntries | length(@) }}, All addresses found: {{ serviceEntryAddresses }}"
+        deny:
+          conditions:
+            all:
+              - key: "{{ workloadEntryAddress }}"
+                operator: AnyNotIn
+                value: "{{ serviceEntryAddresses }}"

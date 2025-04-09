@@ -1,0 +1,57 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: ensure-deployment-has-authorization-policy
+  annotations:
+    policies.kyverno.io/title: Ensure Workload Has Authorization Policy
+    policies.kyverno.io/category: Istio Security Best Practices
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/subject: Deployment
+    policies.kyverno.io/description: >-
+      Ensures that each Deployment is covered by at least one AuthorizationPolicy with matching labels.
+      This prevents workloads from being deployed without proper access controls in place.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: check-authorization-policy-exists
+      match:
+        any:
+          - resources:
+              kinds:
+                - apps/v1/Deployment
+      context:
+        - name: workloadLabels
+          variable:
+            value: "{{ request.object.spec.template.metadata.labels }}"
+        - name: appLabel
+          variable:
+            # Extract the app label which is commonly used for matching
+            value: "{{ request.object.spec.template.metadata.labels.app }}"
+        - name: namespace
+          variable:
+            value: "{{ request.object.metadata.namespace }}"
+        - name: authorizationPolicies
+          apiCall:
+            urlPath: "/apis/security.istio.io/v1beta1/namespaces/{{ namespace }}/authorizationpolicies"
+            jmesPath: "items"
+        - name: matchingPoliciesCount
+          variable:
+            # Count policies where app label matches
+            value: "{{ authorizationPolicies[?spec.selector.matchLabels.app=='{{ appLabel }}'] | length(@) }}"
+      validate:
+        message: >-
+          Deployment '{{ request.object.metadata.name }}' is not covered by any AuthorizationPolicy. 
+          You must create an AuthorizationPolicy with a selector that matches the app label: '{{ appLabel }}'. 
+          Debug info: Found {{ authorizationPolicies | length(@) }} AuthorizationPolicies in namespace {{ namespace }}.
+        deny:
+          conditions:
+            all:
+              # Only check if appLabel is not empty (to avoid false positives)
+              - key: "{{ appLabel }}"
+                operator: NotEquals
+                value: ""
+              # Deny if no matching policies found
+              - key: "{{ matchingPoliciesCount }}"
+                operator: Equals
+                value: 0

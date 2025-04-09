@@ -1,7 +1,7 @@
 apiVersion: chainsaw.kyverno.io/v1alpha1
 kind: Test
 metadata:
-  name: validate-virtualservice-namespace-chainsaw
+  name: check-workload-serviceentry-mapping-chainsaw
 spec:
   steps:
     - name: apply-rbac-policy
@@ -9,17 +9,23 @@ spec:
         - apply:
             file: rbac-policy.yaml
 
-    - name: apply-validate-virtualservice-namespace-policy
+    - name: apply-check-workload-serviceentry-mapping-policy
       try:
         - apply:
-            file: ../validate-virtualservice-namespace.yaml
+            file: ../check-workload-serviceentry-mapping.yaml
         - assert:
             file: policy-assert.yaml
+
+    - name: apply-serviceentry
+      try:
+        - apply:
+            file: serviceentry.yaml
 
     - name: apply-good-deployment
       try:
         - apply:
             file: good-resource.yaml
+
 
     - name: apply-bad-deployment (should fail)
       try:

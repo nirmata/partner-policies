@@ -1,0 +1,54 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: validate-jwt-claim-routing
+  annotations:
+    policies.kyverno.io/title: Validate JWT Claim Based Routing
+    policies.kyverno.io/category: Istio Security Best Practices
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/subject: VirtualService, RequestAuthentication
+    policies.kyverno.io/description: >-
+      Ensures that when JWT claim based routing is used in a VirtualService,
+      there is at least one corresponding RequestAuthentication in the same namespace.
+      This prevents insecure routing based on unvalidated JWT claims.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: check-jwt-claim-routing-has-request-auth
+      match:
+        any:
+          - resources:
+              kinds:
+                - networking.istio.io/v1beta1/VirtualService
+      context:
+        - name: namespace
+          variable:
+            value: "{{ request.object.metadata.namespace }}"
+        - name: vsName
+          variable:
+            value: "{{ request.object.metadata.name }}"
+        - name: hasJwtRouting
+          variable:
+            # Check if any route in the VirtualService uses JWT claim-based routing
+            jmesPath: "length(request.object.spec.http[*].match[*].headers[?keys(@) | [?contains(@, 'jwt') || contains(@, 'x-jwt')]])" 
+        - name: requestAuths
+          apiCall:
+            urlPath: "/apis/security.istio.io/v1beta1/namespaces/{{ namespace }}/requestauthentications"
+            jmesPath: "items"
+      preconditions:
+        all:
+        - key: "{{ hasJwtRouting }}"
+          operator: GreaterThan
+          value: 0
+      validate:
+        message: >-
+          VirtualService '{{ vsName }}' uses JWT claim based routing but has no corresponding 
+          RequestAuthentication in the same namespace. Either add a RequestAuthentication 
+          resource to validate JWT claims or remove the JWT claim based routing from the VirtualService.
+        deny:
+          conditions:
+            all:
+            - key: "{{ requestAuths | length(@) }}"
+              operator: Equals
+              value: 0
