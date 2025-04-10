@@ -1,0 +1,11 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: invalid-host-virtual-service
+spec:
+  hosts:
+  - "non-existing-service.example-namespace.svc.cluster.local"
+  http:
+  - route:
+    - destination:
+        host: "unknown-service.example-namespace.svc.cluster.local"

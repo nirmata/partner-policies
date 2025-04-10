@@ -1,0 +1,32 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: check-mtls-disabled
+  annotations:
+    policies.kyverno.io/title: Check DestinationRule Mtls Disabled
+    policies.kyverno.io/category: Istio Best Practicess
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: DestinationRule
+    policies.kyverno.io/description: >-
+      Ensures that any DestinationRule explicitly sets mTLS mode to DISABLE when present.
+      This policy checks for cases where mTLS is intentionally turned off to avoid unintended
+      secure communication between services that do not support mTLS.
+spec:
+  validationFailureAction: Enforce
+  rules:
+    - match:
+        any:
+          - resources:
+              kinds:
+                - DestinationRule
+              operations:
+                - CREATE
+                - UPDATE
+      name: check-mtls-disabled
+      validate:
+        message: spec.trafficPolicy.tls.mode if present must be set to DISABLE
+        pattern:
+          spec:
+            trafficPolicy:
+              tls:
+                  mode: DISABLE

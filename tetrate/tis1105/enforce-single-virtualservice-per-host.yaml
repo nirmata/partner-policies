@@ -1,0 +1,43 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: enforce-single-virtualservice-per-host
+  annotations:
+    policies.kyverno.io/title: Single VirtualService Per Host
+    policies.kyverno.io/category: Istio Configuration Best Practices
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: VirtualService
+    policies.kyverno.io/description: >-
+      Ensures that only one VirtualService exists for each host within a namespace.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: check-unique-hosts
+      match:
+        any:
+          - resources:
+              kinds:
+                - networking.istio.io/v1beta1/VirtualService
+      context:
+        - name: vs_namespace
+          variable:
+            value: "{{ request.object.metadata.namespace }}"
+        - name: vs_name
+          variable:
+            value: "{{ request.object.metadata.name }}"
+        - name: host1
+          variable:
+            value: "{{ request.object.spec.hosts[0] }}"
+        - name: existingVS
+          apiCall:
+            urlPath: "/apis/networking.istio.io/v1beta1/namespaces/{{ vs_namespace }}/virtualservices"
+            jmesPath: "items[?metadata.name != '{{ vs_name }}']"
+      validate:
+        message: "VirtualService '{{ vs_name }}' has host '{{ host1 }}' that conflicts with an existing VirtualService. Either merge the VirtualServices or use different hosts."
+        deny:
+          conditions:
+            any:
+            - key: "{{ existingVS[].spec.hosts[] | [?@ == '{{ host1 }}'] | length(@) }}"
+              operator: GreaterThan
+              value: 0

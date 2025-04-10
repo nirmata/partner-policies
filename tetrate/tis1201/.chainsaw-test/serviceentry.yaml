@@ -1,0 +1,16 @@
+apiVersion: networking.istio.io/v1beta1
+kind: ServiceEntry
+metadata:
+  name: external-service
+  namespace: default
+spec:
+  hosts:
+  - "external-app.example.com"
+  addresses:
+  - "192.168.1.10"
+  ports:
+  - number: 80
+    name: http
+    protocol: HTTP
+  location: MESH_EXTERNAL
+  resolution: STATIC

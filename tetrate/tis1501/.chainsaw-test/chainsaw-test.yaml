@@ -1,7 +1,7 @@
 apiVersion: chainsaw.kyverno.io/v1alpha1
 kind: Test
 metadata:
-  name: validate-virtualservice-namespace-chainsaw
+  name: prevent-duplicate-gateway-hostport-chainsaw
 spec:
   steps:
     - name: apply-rbac-policy
@@ -9,17 +9,18 @@ spec:
         - apply:
             file: rbac-policy.yaml
 
-    - name: apply-validate-virtualservice-namespace-policy
+    - name: apply-prevent-duplicate-gateway-hostport-policy
       try:
         - apply:
-            file: ../validate-virtualservice-namespace.yaml
+            file: ../prevent-duplicate-gateway-hostport.yaml
         - assert:
             file: policy-assert.yaml
 
     - name: apply-good-deployment
       try:
         - apply:
-            file: good-resource.yaml
+            file: resource-one.yaml
+
 
     - name: apply-bad-deployment (should fail)
       try:
@@ -27,4 +28,4 @@ spec:
             expect:
               - check:
                   ($error != null): true
-            file: bad-resource.yaml
+            file: resource-two.yaml

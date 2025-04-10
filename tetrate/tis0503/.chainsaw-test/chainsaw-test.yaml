@@ -1,22 +1,22 @@
 apiVersion: chainsaw.kyverno.io/v1alpha1
 kind: Test
 metadata:
-  name: enforce-fips-compliant-images-chainsaw
+  name: test-ensure-meshwide-mtls-disable
 spec:
   steps:
-    - name: apply-enforce-fips-compliant-images-policy
+    - name: apply-desrule-policy
       try:
         - apply:
-            file: ../enforce-fips-compliant-images.yaml
+            file: ../ensure-meshwide-mtls-disable.yaml
         - assert:
             file: policy-assert.yaml
-
-    - name: apply-good-deployment
+            
+    - name: apply-good-resource
       try:
         - apply:
             file: good-resource.yaml
 
-    - name: apply-bad-deployment (should fail)
+    - name: apply-bad-resource (should fail)
       try:
         - apply:
             expect:

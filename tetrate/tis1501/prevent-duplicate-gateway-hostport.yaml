@@ -1,0 +1,66 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: prevent-duplicate-gateway-hostport
+  annotations:
+    policies.kyverno.io/title: Prevent Duplicate Gateway Host-Port
+    policies.kyverno.io/category: Gateway API Best Practices
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: Gateway
+    policies.kyverno.io/description: >-
+      Prevents creation of Gateway resources with listeners that define the same
+      host-port combination as existing Gateway resources. Multiple Gateways
+      targeting the same host and port can lead to conflicts and undefined behavior.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: check-duplicate-hostport
+      match:
+        any:
+          - resources:
+              kinds:
+                - Gateway
+      context:
+        - name: newGatewayName
+          variable:
+            value: "{{ request.object.metadata.name }}"
+        - name: newGatewayNamespace
+          variable:
+            value: "{{ request.object.metadata.namespace }}"
+        - name: newGatewayListeners
+          variable:
+            jmesPath: "request.object.spec.listeners || `[]`"
+        - name: existingGateways
+          apiCall:
+            urlPath: "/apis/gateway.networking.k8s.io/v1beta1/gateways"
+            jmesPath: "items"
+      preconditions:
+        all:
+          - key: "{{ newGatewayListeners | length(@) }}"
+            operator: GreaterThan
+            value: 0
+      validate:
+        message: "Gateway cannot be created with duplicate host-port combination. Conflict detected with existing Gateway."
+        foreach:
+          - list: "newGatewayListeners"
+            context:
+              - name: currentPort
+                variable:
+                  value: "{{ element.port }}"
+              - name: currentHostname 
+                variable:
+                  value: "{{ element.hostname }}"
+              - name: conflictCount
+                variable:
+                  jmesPath: >-
+                    length(existingGateways[?
+                    (metadata.name != '{{ newGatewayName }}' || metadata.namespace != '{{ newGatewayNamespace }}') &&
+                    contains(spec.listeners[*].port, `{{ currentPort }}`) &&
+                    contains(spec.listeners[*].hostname, '{{ currentHostname }}')
+                    ])
+            deny:
+              conditions:
+                - key: "{{ conflictCount }}"
+                  operator: GreaterThan
+                  value: 0

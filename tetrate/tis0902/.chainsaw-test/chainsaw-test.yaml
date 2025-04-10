@@ -1,20 +1,15 @@
 apiVersion: chainsaw.kyverno.io/v1alpha1
 kind: Test
 metadata:
-  name: enforce-fips-compliant-images-chainsaw
+  name: check-istio-configmap-tracing-test
 spec:
   steps:
-    - name: apply-enforce-fips-compliant-images-policy
+    - name: apply-kyverno-policy
       try:
         - apply:
-            file: ../enforce-fips-compliant-images.yaml
+            file: ../check-istio-configmap-tracing.yaml
         - assert:
             file: policy-assert.yaml
-
-    - name: apply-good-deployment
-      try:
-        - apply:
-            file: good-resource.yaml
 
     - name: apply-bad-deployment (should fail)
       try:
@@ -23,3 +18,8 @@ spec:
               - check:
                   ($error != null): true
             file: bad-resource.yaml
+
+    - name: apply-good-deployment
+      try:
+        - apply:
+            file: good-resource.yaml

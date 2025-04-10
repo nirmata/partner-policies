@@ -1,0 +1,31 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: check-telemetry-non-empty-provider
+  annotations:
+    policies.kyverno.io/title: Ensure Non-Empty Providers in Telemetry Spec
+    policies.kyverno.io/category: Best Practices
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/description: >-
+      Ensures that Telemetry resources have at least one non-empty 'name' under 'providers'
+      in both 'accessLogging' and 'metrics'.
+spec:
+  validationFailureAction: Enforce
+  rules:
+    - name: deny-empty-access-logging-or-metrics
+      match:
+        resources:
+          kinds:
+            - telemetry.istio.io/v1/Telemetry
+      validate:
+        message: >-
+          Telemetry must include at least one provider with a non-empty name in both 'accessLogging' and 'metrics'.
+        deny:
+          conditions:
+            any:
+              - key: "{{ request.object.spec.accessLogging[?providers!=[]] | length(@) }}"
+                operator: Equals
+                value: 0
+              - key: "{{ request.object.spec.metrics[?providers!=[]] | length(@) }}"
+                operator: Equals
+                value: 0

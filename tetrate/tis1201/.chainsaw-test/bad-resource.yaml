@@ -1,0 +1,10 @@
+apiVersion: networking.istio.io/v1beta1
+kind: WorkloadEntry
+metadata:
+  name: external-workload-bad
+  namespace: default
+spec:
+  address: "192.168.2.10"
+  labels:
+    app: external-app
+  serviceAccount: "external-service-account"

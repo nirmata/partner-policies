@@ -1,0 +1,6 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: ensure-deployment-has-authorization-policy
+spec:
+  validationFailureAction: Enforce

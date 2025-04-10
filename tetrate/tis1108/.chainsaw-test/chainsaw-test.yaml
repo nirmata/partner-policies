@@ -1,7 +1,7 @@
 apiVersion: chainsaw.kyverno.io/v1alpha1
 kind: Test
 metadata:
-  name: validate-virtualservice-namespace-chainsaw
+  name: validate-jwt-claim-routing-chainsaw
 spec:
   steps:
     - name: apply-rbac-policy
@@ -9,17 +9,12 @@ spec:
         - apply:
             file: rbac-policy.yaml
 
-    - name: apply-validate-virtualservice-namespace-policy
+    - name: apply-validate-jwt-claim-routing-policy
       try:
         - apply:
-            file: ../validate-virtualservice-namespace.yaml
+            file: ../validate-jwt-claim-routing.yaml
         - assert:
             file: policy-assert.yaml
-
-    - name: apply-good-deployment
-      try:
-        - apply:
-            file: good-resource.yaml
 
     - name: apply-bad-deployment (should fail)
       try:
@@ -27,4 +22,16 @@ spec:
             expect:
               - check:
                   ($error != null): true
-            file: bad-resource.yaml
+            file: resource.yaml
+
+    - name: apply-requestauthentication
+      try:
+        - apply:
+            file: requestauthentication.yaml
+
+    - name: apply-good-deployment
+      try:
+        - apply:
+            file: resource.yaml
+
+

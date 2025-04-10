@@ -1,0 +1,42 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: validate-virtualservice-hosts
+  annotations:
+    policies.kyverno.io/title: Validate VirtualService Hosts Exist in Service Registry
+    policies.kyverno.io/category: Istio Best Practices
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/subject: VirtualService
+    policies.kyverno.io/description: >-
+      Ensures that the VirtualService hosts reference known services in the service registry.
+      This prevents routing failures caused by misconfigured or non-existent hosts.
+spec:
+  validationFailureAction: Enforce
+  rules:
+    - name: validate-virtualservice-hosts
+      match:
+        any:
+          - resources:
+              kinds:
+                - VirtualService
+              operations:
+                - CREATE
+                - UPDATE
+      context:
+        - name: serviceExists
+          apiCall:
+            urlPath: "/api/v1/services"
+            jmesPath: "items[].metadata.name"
+        - name: hosts
+          variable:
+            value: "{{ request.object.spec.hosts || [] }}"
+      validate:
+        message: "The hosts used: {{ hosts }}, doesn't exists in Services: {{ serviceExists }}"
+        foreach:
+          - list: request.object.spec.hosts
+            deny:
+              conditions:
+                all:
+                  - key: "{{ split(element, '.')[0] }}"
+                    operator: AnyNotIn
+                    value: "{{ serviceExists }}"

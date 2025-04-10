@@ -1,0 +1,19 @@
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: meshwide-missing-tls
+spec:
+  host: "*.cluster.local"
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: service-specific-disable-tls
+spec:
+  host: "test-example.example-namespace.svc.cluster.local"
+  trafficPolicy:
+    tls:
+      mode: DISABLE

@@ -1,7 +1,7 @@
 apiVersion: kyverno.io/v1
 kind: ClusterPolicy
 metadata:
-  name: require-compliance-policy-env
+  name: check-compliance-policy-env-chainsaw
 spec:
   validationFailureAction: Enforce
   background: true

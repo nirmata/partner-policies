@@ -1,0 +1,13 @@
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: good-resource-1
+spec:
+  host: "my-service.example-namespace.svc.cluster.local"
+  subsets:
+  - name: v2
+    labels:
+      version: v2
+  trafficPolicy:
+    loadBalancer:
+      simple: LEAST_CONN

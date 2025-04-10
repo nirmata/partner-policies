@@ -1,0 +1,45 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: ensure-meshwide-mtls-present
+  annotations:
+    policies.kyverno.io/title: Ensure Mesh-Wide TLS Configured
+    policies.kyverno.io/category: Istio Best Practices
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: DestinationRule
+    policies.kyverno.io/description: >-
+      Ensures that any mesh-wide DestinationRule (host set to '*.cluster.local') 
+      has TLS settings defined under trafficPolicy. This promotes secure service-to-service 
+      communication via mTLS or other TLS modes in the mesh.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: ensure-meshwide-mtls-present
+      match:
+        any:
+          - resources:
+              kinds:
+                - DestinationRule
+              operations:
+                - CREATE
+                - UPDATE    
+      context:
+        - name: host
+          variable:
+            jmesPath: "request.object.spec.host"
+        - name: tlsMode
+          variable:
+            jmesPath: "request.object.spec.trafficPolicy.tls.mode || ''"
+      validate:
+        message: >
+          Mesh-wide DestinationRules (with host '*.cluster.local') must have TLS configured under trafficPolicy.
+        deny:
+          conditions: 
+            all:
+              - key: "{{ contains({{ host }}, '*.cluster.local') }}"
+                operator: Equals
+                value: false
+              - key: "{{ tlsMode }}"
+                operator: Equals
+                value: ''
